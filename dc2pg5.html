@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>InstaConnect - Viral Post</title>
+  <link rel="stylesheet" href="https://use.typekit.net/cjg3huz.css">
+  <style>
+    /* ... (Your CSS remains the same) ... */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body { background: url('BG1.1.png') center / cover no-repeat; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+    #game-container { width: 960px; height: 540px; position: relative; background: url('livingroom.png') center / cover no-repeat; border-radius: 8px; overflow: hidden; opacity: 0; transition: opacity 1s ease-in-out; }
+    #scene-content { width: 100%; height: 100%; position: relative; opacity: 0; transition: opacity 1.5s ease-in-out; }
+    #phone-ui { position: absolute; right: -20px; top: 40%; transform: translateY(-50%); height: 65%; width: auto; z-index: 50; filter: drop-shadow(-5px 5px 10px rgba(0,0,0,0.5)); }
+    
+    #dialogue-container {
+      position: absolute; 
+      bottom: 20px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 130px; 
+      display: flex; justify-content: center; align-items: center;
+      z-index: 60; padding: 0 60px;    
+    }
+    #dialogue-text { 
+      font-family: "cc-pixel-arcade-display", sans-serif;
+      font-weight: 100;
+      font-style: normal;
+      color: white; 
+      font-size: 15px; 
+      line-height: 1.4; 
+      text-align: center; 
+      margin-top: 25px; 
+    }
+    #textbox-image { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; object-fit: fill; }
+
+    #viral-post { position: absolute; right: 350px; top: 40%; transform: translateY(-50%); width: 450px; height: 500px; object-fit: contain; z-index: 40; opacity: 0; transition: opacity 1.5s ease-in-out; }
+
+    /* Button Styling */
+    #next-btn { 
+      position: absolute; bottom: 15px; right: 20px; 
+      width: 80px; height: auto; cursor: pointer; 
+      display: none; opacity: 0; z-index: 70; 
+      transition: transform 0.2s, opacity 0.5s;
+    }
+    #next-btn:hover { transform: scale(1.1); }
+
+#click-hand {
+    position: absolute;
+    top: 18%; 
+    right: 190px; /* Adjust this to sit perfectly over the phone screen */
+    width: 60px;
+    z-index: 55;
+    opacity: 0; /* Hidden at start */
+    pointer-events: none;
+    transition: opacity 1s ease-in-out;
+    animation: hand-bounce 1s infinite ease-in-out;
+}
+
+/* Choice Interface Positioning */
+#choice-wrap {
+    position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+    width: 800px; height: 130px; z-index: 80; transition: opacity 0.5s;
+}
+#choice-bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; z-index: -1; }
+
+.branch-btn {
+    position: absolute; top: 60%; transform: translateY(-50%);
+    width: 120px; cursor: pointer; opacity: 0; 
+    transition: transform 0.2s, opacity 0.5s; z-index: 85;
+}
+#btn-a { left: 5%; }
+#btn-b { right: 35%; }
+
+.text-container {
+    position: absolute; top: 60%; transform: translateY(-50%);
+    pointer-events: none; color: rgb(221, 255, 0);
+    width: 250px; white-space: normal; line-height: 1.2;
+}
+#text-container-a { left: 15%; }
+#text-container-b { left: 60%; }
+
+#success-tag {
+    color: #ffffff;
+    font-size: 18px;
+    line-height: 1.6; /* Adds a comfortable gap between the 3 lines */
+    text-align: center;
+    margin-bottom: 25px;
+    min-height: 90px; /* Keeps the box height steady while typing */
+}
+
+.text-container {
+    position: absolute; 
+    top: 60%; 
+    transform: translateY(-50%);
+    pointer-events: none; 
+    color: rgb(221, 255, 0);
+    width: 280px; /* Increased slightly to accommodate longer text */
+    white-space: normal; 
+    line-height: 1.2;
+}
+
+#success-tag {
+    color: #ffffff;
+    font-size: 17px;
+    line-height: 1.6; /* Essential for making the double break look clean */
+    margin-bottom: 30px;
+}
+  </style>
+</head>
+<body>
+
+<div id="game-container">
+  <div id="scene-content">
+      <img src="phone.png" id="phone-ui">
+      <img src="post.png" id="viral-post">
+      <img src="cclicked.png" id="click-hand">
+
+      <div id="dialogue-container">
+          <img src="you.png" id="textbox-image">
+          <p id="dialogue-text"></p>
+          <img src="next.png" id="next-btn" alt="Next">
+      </div>
+  </div>
+<div id="choice-wrap" style="display: none; opacity: 0;">
+    <img src="choose.png" id="choice-bg-img">
+    
+    <img src="Abutton.png" id="btn-a" class="branch-btn">
+    <div id="text-container-a" class="text-container">
+      <h3 id="head-a" style="font-size: 18px; text-shadow: 2px 2px 4px #000;"></h3>
+    </div>
+
+    <img src="Bbutton.png" id="btn-b" class="branch-btn">
+    <div id="text-container-b" class="text-container">
+      <h3 id="head-b" style="font-size: 18px; text-shadow: 2px 2px 4px #000;"></h3>
+    </div>
+  </div>
+  <div id="fail-overlay" style="display: none; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.9); z-index: 200; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.5s ease;">
+    <div id="fail-box" style="width: 500px; background: #1a1a1a; border: 2px solid #ff4757; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 0 30px rgba(255, 71, 87, 0.3);">
+        <h1 id="fail-head" style="color: #ff4757; font-size: 28px; margin-bottom: 15px;"></h1>
+        <p id="fail-tag" style="color: #ffffff; font-size: 16px; line-height: 1.6; margin-bottom: 25px;"></p>
+        <button id="retry-btn" style="background: #ff4757; color: white; border: none; padding: 12px 30px; font-weight: bold; border-radius: 5px; cursor: pointer; transition: 0.2s;">TRY AGAIN</button>
+    </div>
+</div>
+
+<div id="success-overlay" style="display: none; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.9); z-index: 200; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.5s ease;">
+  <div id="success-box" style="width: 550px; background: #1a1a1a; border: 2px solid #2ecc71; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 0 30px rgba(46, 204, 113, 0.3);">
+    <h1 id="success-head" style="color: #2ecc71; font-size: 28px; margin-bottom: 20px; font-weight: bold;">✅ Wise Move</h1>
+    
+    <p id="success-tag" style="color: #ffffff; font-size: 17px; line-height: 1.5; margin-bottom: 30px; min-height: 80px;"></p>
+    
+    <button id="finish-btn" style="background: #2ecc71; color: white; border: none; padding: 12px 30px; font-weight: bold; border-radius: 5px; cursor: pointer; transition: 0.2s;">CONTINUE</button>
+  </div>
+</div>
+</div>
+
+<script>
+  let currentQuestion = 1; // Tracks progress
+
+  window.onload = () => {
+    const container = document.getElementById('game-container');
+    const scene = document.getElementById('scene-content');
+    const dText = document.getElementById('dialogue-text');
+    const postImg = document.getElementById('viral-post');
+    const handImg = document.getElementById('click-hand');
+
+    container.style.opacity = "1";
+
+    setTimeout(() => {
+      scene.style.opacity = "1";
+      setTimeout(() => {
+        typeWriter("This post is getting so viral... what is it about?", dText, 40, () => {
+          showNextButton(() => {
+            dText.innerHTML = ""; 
+            postImg.style.opacity = "1";
+            handImg.style.opacity = "1";
+
+            typeWriter("It looks convincing, but something about it feels off...", dText, 40, () => {
+              showNextButton(() => {
+                triggerChoiceBranch();
+              });
+            });
+          });
+        });
+      }, 1000);
+    }, 1000);
+  };
+
+  function triggerChoiceBranch() {
+    const dialogueCont = document.getElementById('dialogue-container');
+    const choiceWrap = document.getElementById('choice-wrap');
+    const headA = document.getElementById('head-a');
+    const headB = document.getElementById('head-b');
+
+    dialogueCont.style.opacity = "0";
+
+    setTimeout(() => {
+      dialogueCont.style.display = "none";
+      choiceWrap.style.display = "block";
+      setTimeout(() => { 
+        choiceWrap.style.opacity = "1"; 
+        document.getElementById('btn-a').style.opacity = "1";
+        document.getElementById('btn-b').style.opacity = "1";
+        
+        // SWITCH TEXT BASED ON QUESTION
+        if (currentQuestion === 1) {
+          typeWriter("Check where this information comes from before reacting", headA, 30);
+          typeWriter("Assume it’s accurate since it looks professional and popular", headB, 30);
+        } else {
+          typeWriter("Reply to argue, even if it<br> adds to the attention", headA, 30);
+          typeWriter("Report or hide the post and avoid engaging with it", headB, 30);
+        }
+      }, 50);
+    }, 500);
+
+    document.getElementById('btn-a').onclick = () => handleChoice('A');
+    document.getElementById('btn-b').onclick = () => handleChoice('B');
+  }
+
+  function handleChoice(choice) {
+    if (currentQuestion === 1) {
+        if (choice === 'B') {
+            handleFailChoice("⚠️ Rushed Decision", "AI-generated visuals can make misleading content look credible. Popularity doesn’t mean accuracy.");
+        } else {
+            handleSuccessChoice();
+        }
+    } else {
+        // Question 2 Logic
+        if (choice === 'A') {
+            handleFailChoice("⚠️ Engagement Trap", "Engaging with harmful content often boosts its visibility. AI-amplified hate spreads faster through interaction.");
+        } else {
+            // Correct Choice for Question 2
+            handleFinalSuccess();
+        }
+    }
+}
+
+function handleFinalSuccess() {
+    const sOverlay = document.getElementById('success-overlay');
+    const sTag = document.getElementById('success-tag');
+    const finishBtn = document.getElementById('finish-btn');
+    const sHead = document.getElementById('success-head');
+
+    // 1. Show the success overlay
+    sOverlay.style.display = "flex";
+    setTimeout(() => sOverlay.style.opacity = "1", 10);
+
+    // 2. Set the header
+    sHead.innerHTML = "✅ Smart Choice";
+
+    // 3. The 3-line message with the double break <br><br> for extra space
+    const finalSuccessMsg = "You scroll past, choosing not to fuel it.<br>" +
+                            "AI can amplify voices — but how people respond still matters.<br><br>" +
+                            "Lesson: You can’t control AI usage, but you can control what you engage with.";
+
+    // 4. Start the typewriter
+    typeWriter(finalSuccessMsg, sTag, 40, () => {
+        // 5. When the user clicks the CONTINUE button
+        finishBtn.onclick = () => {
+            sOverlay.style.opacity = "0"; // Fade out the overlay
+            
+            setTimeout(() => {
+                // 6. Redirect to dc2pg6.html
+                window.location.href = "dc2pg6.html"; 
+            }, 500);
+        };
+    });
+}
+  // UPDATED: Now accepts custom text
+  function handleFailChoice(header, message) {
+    const overlay = document.getElementById('fail-overlay');
+    const fHead = document.getElementById('fail-head');
+    const fTag = document.getElementById('fail-tag');
+    const retryBtn = document.getElementById('retry-btn');
+
+    overlay.style.display = "flex";
+    setTimeout(() => overlay.style.opacity = "1", 10);
+
+    typeWriter(header, fHead, 30, () => {
+      typeWriter(message, fTag, 20);
+    });
+
+    retryBtn.onclick = () => {
+      overlay.style.opacity = "0";
+      setTimeout(() => { 
+        overlay.style.display = "none";
+        fHead.innerHTML = ""; 
+        fTag.innerHTML = "";
+      }, 500);
+    };
+  }
+
+  function handleSuccessChoice() {
+    const sOverlay = document.getElementById('success-overlay');
+    const sTag = document.getElementById('success-tag');
+    const finishBtn = document.getElementById('finish-btn');
+    const choiceWrap = document.getElementById('choice-wrap');
+    const dialogueCont = document.getElementById('dialogue-container');
+    const dText = document.getElementById('dialogue-text');
+
+    sOverlay.style.display = "flex";
+    setTimeout(() => sOverlay.style.opacity = "1", 10);
+
+    const successMsg = "You tap into the post details.<br>" +
+                       "The infographic was generated using an AI image tool.<br>" +
+                       "No credible sources are listed.";
+
+    typeWriter(successMsg, sTag, 40, () => {
+      finishBtn.onclick = () => {
+        sOverlay.style.opacity = "0";
+        setTimeout(() => {
+          sOverlay.style.display = "none";
+          choiceWrap.style.opacity = "0";
+          setTimeout(() => {
+            choiceWrap.style.display = "none";
+            dialogueCont.style.display = "flex";
+            dialogueCont.style.opacity = "1";
+
+            const finalThought = "AI really makes this look convincing…<br>" + 
+                                 "No wonder people are reacting without thinking.";
+            
+            typeWriter(finalThought, dText, 40, () => {
+              showNextButton(() => {
+                // IMPORTANT: Move to Question 2
+                currentQuestion = 2; 
+                triggerChoiceBranch(); 
+              });
+            });
+          }, 500);
+        }, 500);
+      };
+    });
+  }
+
+  function showNextButton(callback) {
+    const nextBtn = document.getElementById('next-btn');
+    if (!nextBtn) return; 
+    nextBtn.style.display = "block";
+    setTimeout(() => { nextBtn.style.opacity = "1"; }, 10);
+    
+    nextBtn.onclick = () => {
+      nextBtn.style.opacity = "0";
+      setTimeout(() => { 
+        nextBtn.style.display = "none"; 
+        callback(); 
+      }, 500);
+    };
+  }
+
+  function typeWriter(text, element, speed, callback) {
+    let i = 0;
+    element.innerHTML = ""; 
+    function type() {
+      if (i < text.length) {
+        if (text.substring(i, i + 4) === "<br>") {
+          element.innerHTML += "<br>";
+          i += 4;
+        } else {
+          element.innerHTML += text.charAt(i);
+          i++;
+        }
+        setTimeout(type, speed);
+      } else if (callback) callback();
+    }
+    type();
+  }
+
+document.getElementById('finish-btn').addEventListener('click', () => {
+    if (currentQuestion === 2 && document.getElementById('success-overlay').style.display === "flex") {
+         window.location.href = "dc2pg6.html";
+    }
+});
+</script>
+</body>
+</html>

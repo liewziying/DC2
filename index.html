@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Just Another Day Online</title>
+  <link rel="stylesheet" href="https://use.typekit.net/cjg3huz.css">
+  <style>
+    /* ------------------- Reset & Base ------------------- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: url("BG1.1.png") center / cover no-repeat;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      /* Base font fallback */
+      font-family: system-ui, sans-serif; 
+    }
+
+    /* ------------------- Game Container ------------------- */
+    #game-container {
+      width: 960px;
+      height: 540px;
+      position: relative;
+      background: url("BG1.png") center / cover no-repeat;
+      color: rgb(255, 226, 108);
+      overflow: hidden;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    #game-container::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 1;
+    }
+
+    /* ------------------- Intro Screen & Glitch ------------------- */
+    #intro-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      z-index: 10;
+      transition: opacity 0.8s ease, visibility 0.8s;
+    }
+
+    #intro-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    #intro-screen h1 {
+      font-family: "cc-pixel-arcade-cartridge", "Courier New", monospace;
+      font-size: 35px; 
+      letter-spacing: 5px; 
+      font-weight: 400; /* Pixel fonts prefer 400 */
+      position: relative;
+      animation: main-glitch 3s linear infinite;
+    }
+
+    #intro-screen h1::before, #intro-screen h1::after {
+      content: "Just Another Day Online";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.8;
+    }
+
+    #intro-screen h1::before {
+      color: #0ff;
+      z-index: -1;
+      animation: glitch-anim-1 2s linear infinite;
+    }
+
+    #intro-screen h1::after {
+      color: #f0f;
+      z-index: -2;
+      animation: glitch-anim-2 3s linear infinite;
+    }
+
+    .tagline { 
+      font-family: "cc-pixel-arcade-display", sans-serif;
+      color: rgb(252, 247, 157);
+      font-weight: 400;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 30px;
+      font-size: 16px;
+      color: #fff;
+      animation: pulse 2s infinite;
+      font-family: "cc-pixel-arcade-display", sans-serif;
+    }
+
+    /* ------------------- Rules Card ------------------- */
+    #rules-card-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 700px;
+      height: 420px;
+      background-color: rgba(0,0,0,0.95);
+      border: 2px solid #0ff;
+      border-radius: 20px;
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
+      z-index: 20;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.6s ease;
+      display: flex;
+    }
+
+    #rules-card-container.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .card-page {
+      position: absolute;
+      inset: 0;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease;
+    }
+
+    .card-page.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* ------------------- Rules Typography ------------------- */
+    .card-page p { 
+      font-family: "cc-pixel-arcade-display", sans-serif;
+      font-size: 16px; 
+      line-height: 1.8; 
+      color: #fff; 
+      margin-bottom: 20px; 
+    }
+
+    .card-page strong, h2 { 
+      font-family: "cc-pixel-arcade-cartridge", sans-serif; 
+      color: #ffda44; 
+      letter-spacing: 2px;
+    }
+
+    .card-page strong { font-size: 24px; display: block; margin-bottom: 15px; }
+    h2 { font-size: 22px; margin-top: 15px; margin-bottom: 5px; }
+
+    /* ------------------- Interactive Elements ------------------- */
+    #begin-day-btn {
+      font-family: "cc-pixel-arcade-cartridge", sans-serif;
+      padding: 12px 30px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background-color: #0ff;
+      color: #000;
+      cursor: pointer;
+      box-shadow: 0 0 15px #0ff;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-bottom: 10px;
+    }
+
+    #begin-day-btn:hover { transform: scale(1.1); box-shadow: 0 0 25px #0ff; }
+
+    .arrow-btn {
+      position: absolute;
+      top: 50%;
+      font-size: 32px;
+      color: #0ff;
+      cursor: pointer;
+      transition: transform 0.2s, color 0.2s;
+      z-index: 30;
+      user-select: none;
+    }
+
+    .arrow-btn:hover { color: #fff; transform: translateY(-50%) scale(1.2); }
+    .arrow-btn.left { left: 25px; transform: translateY(-50%) rotate(180deg); }
+    .arrow-btn.right { right: 25px; transform: translateY(-50%); }
+
+    /* ------------------- Animations ------------------- */
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; transform: translateY(0); }
+      50% { opacity: 1; transform: translateY(-5px); }
+    }
+
+    @keyframes main-glitch {
+      0%, 90%, 100% { transform: none; filter: none; }
+      92% { transform: skewX(10deg); filter: contrast(200%); }
+      95% { transform: skewX(-10deg); }
+    }
+
+    @keyframes glitch-anim-1 {
+      0%, 100% { clip-path: inset(100% 0 0 0); }
+      10%, 30% { clip-path: inset(20% 0 50% 0); transform: translate(-5px, 2px); }
+      31%, 90% { clip-path: inset(100% 0 0 0); transform: translate(0); }
+    }
+
+    @keyframes glitch-anim-2 {
+      0%, 100% { clip-path: inset(100% 0 0 0); }
+      40%, 60% { clip-path: inset(60% 0 10% 0); transform: translate(5px, -2px); }
+      61%, 90% { clip-path: inset(100% 0 0 0); transform: translate(0); }
+    }
+
+  </style>
+</head>
+<body>
+
+<div id="game-container">
+
+  <div id="intro-screen">
+    <h1>Just Another Day Online</h1>
+    <p class="tagline">Small choices. Real consequences.</p>
+    <p class="scroll-hint"><i>(Scroll down to continue)</i></p>
+  </div>
+
+  <div id="rules-card-container">
+    <div id="page-1" class="card-page active">
+      <p>
+        <strong>ROLE & RULES:</strong>
+        You're a 25-year-old worker about to go through a normal day online.
+        Messages, posts, and profiles will appear as you scroll.<br><br>
+        Some interactions may look convincing but are designed to mislead.
+        Your goal is to spot risky behaviour and make safer choices.
+      </p>
+      <div class="arrow-btn right" onclick="showPage(2)">&#10132;</div>
+    </div>
+
+    <div id="page-2" class="card-page">
+      <h2>SCAN THE SCREEN</h2>
+      <p>Read every post and message carefully.</p>
+      <h2>MAKE YOUR CALL</h2>
+      <p>If you pick a risky option,<br>you'll learn why.</p>
+      <h2>LEARN AS YOU GO</h2>
+      <p>Mistakes are part of learning how to stay safe.</p>
+      <div class="arrow-btn left" onclick="showPage(1)">&#10132;</div>
+      <button id="begin-day-btn">BEGIN YOUR DAY</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const intro = document.getElementById('intro-screen');
+  const cardContainer = document.getElementById('rules-card-container');
+  const pages = document.querySelectorAll('.card-page');
+  const beginBtn = document.getElementById('begin-day-btn');
+
+  let introFinished = false;
+
+  const bgMusic = new Audio('backtrack.mp3'); 
+  bgMusic.loop = true;
+  bgMusic.volume = 0.4;
+
+  const clickSfx = new Audio('click.mp3');
+
+  function playClick() {
+    const sound = clickSfx.cloneNode();
+    sound.volume = 0.5;
+    sound.play().catch(e => console.log("Sound blocked"));
+  }
+
+  function tryPlayMusic() {
+    bgMusic.play().then(() => {
+        console.log("Music started successfully");
+    }).catch(error => {
+        console.log("Browser blocked autoplay. Waiting for click.");
+    });
+  }
+
+  window.addEventListener('wheel', (e) => {
+    if (!introFinished && e.deltaY > 0) {
+      introFinished = true;
+      tryPlayMusic(); 
+
+      intro.classList.add('hidden');
+      setTimeout(() => {
+        cardContainer.classList.add('visible');
+        showPage(1);
+      }, 600);
+    }
+  });
+
+  document.addEventListener('click', () => {
+      tryPlayMusic();
+  }, { once: true }); 
+
+  function showPage(pageNum) {
+    if (introFinished) playClick(); 
+
+    pages.forEach(p => p.classList.remove('active'));
+    const targetPage = document.getElementById(`page-${pageNum}`);
+    if (targetPage) targetPage.classList.add('active');
+  }
+
+  beginBtn.addEventListener('click', () => {
+    playClick(); 
+    cardContainer.style.opacity = '0';
+    setTimeout(() => {
+      window.location.href = "dc2pg2.html";
+    }, 600);
+  });
+</script>
+<audio id="bg-music" src="backtrack.mp3" loop></audio>
+<audio id="click-sound" src="click.mp3" preload="auto"></audio>
+</body>
+</html>

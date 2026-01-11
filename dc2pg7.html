@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>InstaConnect - Profile Review</title>
+  <link rel="stylesheet" href="https://use.typekit.net/cjg3huz.css">
+  <style>
+    /* ------------------- Reset & Body ------------------- */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body { background: url('BG1.1.png') center / cover no-repeat; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+    
+    #game-container {
+      width: 960px; height: 540px;
+      position: relative;
+      background: url('bedroom.png') center / cover no-repeat; 
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    #bedroom-dimmer { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.7); z-index: 1; }
+    
+    #narration-overlay { 
+        position: absolute; inset: 0; background: black; 
+        display: flex; flex-direction: column; justify-content: center; align-items: center; 
+        z-index: 100; opacity: 1; transition: opacity 2s ease-in-out; 
+    }
+    
+    #narration-text { font-size: 20px; line-height: 1.8; text-align: center; max-width: 700px; color: #ffffff; 
+    font-family: "cc-pixel-arcade-joystick", sans-serif;
+      font-weight: 100;
+      font-style: normal;
+      color: white; }
+
+    #scene-content { opacity: 0; transition: opacity 1.5s ease-in-out; width: 100%; height: 100%; position: relative; z-index: 10; }
+    #start-btn { 
+        margin-top: 40px; 
+        width: 100px; 
+        cursor: pointer; 
+        display: none; 
+        opacity: 0; 
+        transition: opacity 0.5s, transform 0.2s ease; 
+    }
+    #next-btn:active, #start-btn:active {
+        transform: scale(0.95);
+    }
+    #start-btn:hover {
+        transform: scale(1.1);
+    }
+    #phone-ui { position: absolute; right: -20px; top: 40%; transform: translateY(-50%); height: 65%; width: auto; z-index: 50; filter: drop-shadow(-5px 5px 10px rgba(0,0,0,0.5)); }
+
+    .profile-img { 
+      position: absolute; right: 350px; top: 40%; transform: translateY(-50%); 
+      width: 450px; height: 500px; object-fit: contain; 
+      z-index: 40; opacity: 0; pointer-events: none; /* Fixed: Prevents image from blocking button clicks */
+    }
+
+    #click-indicator { position: absolute; top: 27%; right: 93px; width: 50px; z-index: 55; opacity: 0; pointer-events: none; transition: opacity 0.2s ease-in-out; }
+
+    #dialogue-container {
+        position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+        width: 800px; height: 130px; display: flex; justify-content: center; align-items: center;
+        z-index: 60;
+    }
+
+    #dialogue-bg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; object-fit: fill; }
+    #dialogue-text { 
+      font-family: "cc-pixel-arcade-display", sans-serif;
+      font-weight: 100;
+      font-style: normal;
+      color: white; 
+      font-size: 15px; 
+      line-height: 1.4; 
+      text-align: center; 
+      margin-top: 25px; 
+    }
+    
+    #next-btn { 
+    position: absolute; 
+    bottom: 15px; 
+    right: 25px; 
+    width: 70px; 
+    cursor: pointer; 
+    display: none; 
+    opacity: 0; 
+    z-index: 70; 
+    transition: opacity 0.5s ease, transform 0.2s ease; 
+}
+
+#next-btn:hover {
+    transform: scale(1.15); /* Makes the button 15% larger */
+}
+    .branch-btn {
+        position: absolute; top: 60%; transform: translateY(-50%);
+        width: 120px; cursor: pointer; display: none; opacity: 0; 
+        transition: transform 0.2s, opacity 0.5s; z-index: 150;
+    }
+    #btn-a { left: 5%; }
+    #btn-b { right: 35%; }
+    .branch-btn:hover { transform: translateY(-50%) scale(1.1); }
+
+    .text-container {
+        position: absolute; top: 60%; transform: translateY(-50%);
+        pointer-events: none; color: rgb(221, 255, 0); 
+        width: 280px; white-space: normal; line-height: 1.2;
+        opacity: 0; transition: opacity 0.5s; z-index: 90;
+    }
+    #text-container-a { left: 15%; }
+    #text-container-b { left: 60%; }
+
+    /* Swipe Animations */
+    .swipe-out { animation: swipeOut 0.8s forwards ease-in-out; }
+    .swipe-in { animation: swipeIn 0.8s forwards ease-in-out; }
+
+    @keyframes swipeOut {
+        0% { transform: translateY(-50%) translateX(0); opacity: 1; }
+        100% { transform: translateY(-50%) translateX(-1000px); opacity: 0; }
+    }
+    @keyframes swipeIn {
+        0% { transform: translateY(-50%) translateX(1000px); opacity: 0; }
+        100% { transform: translateY(-50%) translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="game-container">
+  <div id="bedroom-dimmer"></div>
+
+  <div id="narration-overlay">
+    <p id="narration-text"></p>
+    <img src="next.png" id="start-btn">
+  </div>
+
+  <div id="scene-content">
+      <img src="phone.png" id="phone-ui">
+      <img src="1profile.png" id="profile-one" class="profile-img">
+      <img src="2profile.png" id="profile-two" class="profile-img">
+      <img src="3profile.png" id="profile-three" class="profile-img">
+      <img src="4profile.png" id="profile-four" class="profile-img">
+      <img src="cclicked.png" id="click-indicator">
+      
+      <div id="dialogue-container">
+          <img src="you.png" id="dialogue-bg">
+          <p id="dialogue-text"></p>
+          <img src="next.png" id="next-btn">
+
+          <img src="Abutton.png" id="btn-a" class="branch-btn">
+          <div id="text-container-a" class="text-container"><h3 id="head-a"></h3></div>
+
+          <img src="Bbutton.png" id="btn-b" class="branch-btn">
+          <div id="text-container-b" class="text-container"><h3 id="head-b"></h3></div>
+      </div>
+  </div>
+
+  <div id="warning-overlay" style="display: none; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.9); z-index: 200; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.5s ease;">
+    <div id="warning-box" style="width: 600px; background: #1a1a1a; border: 2px solid #ffcc00; padding: 30px; border-radius: 12px; text-align: left; color: white;">
+        <h1 style="color: #ffcc00; text-align: center; margin-bottom: 15px;">⚠️ AI Detected</h1>
+        <p id="warning-tag" style="line-height: 1.6; margin-bottom: 25px;"></p>
+        <center><button id="continue-btn" style="background: #ffcc00; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px;">CONTINUE</button></center>
+    </div>
+  </div>
+
+  <div id="success-overlay" style="display: none; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.9); z-index: 200; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.5s ease;">
+    <div id="success-box" style="width: 600px; background: #1a1a1a; border: 2px solid #2ecc71; padding: 30px; border-radius: 12px; text-align: left; color: white;">
+        <h1 style="color: #2ecc71; text-align: center; margin-bottom: 15px;">✅ Good catch!</h1>
+        <p id="success-tag" style="line-height: 1.6; margin-bottom: 25px;"></p>
+        <center><button id="success-continue-btn" style="background: #2ecc71; color: white; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px;">CONTINUE</button></center>
+    </div>
+  </div>
+</div>
+
+<script>
+  const dText = document.getElementById('dialogue-text');
+  const nextBtn = document.getElementById('next-btn');
+  const bgImg = document.getElementById('dialogue-bg');
+  const btnA = document.getElementById('btn-a');
+  const btnB = document.getElementById('btn-b');
+  const textA = document.getElementById('text-container-a');
+  const textB = document.getElementById('text-container-b');
+
+  let currentProfileNum = 1;
+
+  window.onload = () => {
+    const instructions = "You’ll review <b>4</b> profiles.<br>" +
+                       "Pick Genuine or Not genuine for each.<br>" +
+                       "Look at the photo + bio together.<br>" +
+                       "Result & explanation appear after each profile.";
+
+    typeWriter(instructions, document.getElementById('narration-text'), 40, () => {
+      document.getElementById('start-btn').style.display = "block";
+      setTimeout(() => { document.getElementById('start-btn').style.opacity = "1"; }, 10);
+    });
+
+    document.getElementById('start-btn').onclick = () => {
+      document.getElementById('narration-overlay').style.opacity = "0";
+      setTimeout(() => {
+        document.getElementById('narration-overlay').style.display = "none";
+        document.getElementById('scene-content').style.opacity = "1";
+        typeWriter("Let's look at the first profile...", dText, 50, () => {
+            nextBtn.style.display = "block";
+            setTimeout(() => nextBtn.style.opacity = "1", 10);
+        });
+      }, 2000);
+    };
+  };
+
+  nextBtn.onclick = () => {
+    document.getElementById('click-indicator').style.opacity = "1";
+    document.getElementById('profile-one').style.opacity = "1";
+    
+    nextBtn.style.pointerEvents = "none";
+    nextBtn.style.opacity = "0";
+    dText.style.opacity = "0";
+
+    setTimeout(() => {
+      nextBtn.style.display = "none";
+      bgImg.src = "choose.png";
+      
+      btnA.style.display = "block"; 
+      btnB.style.display = "block";
+      textA.style.opacity = "1"; 
+      textB.style.opacity = "1";
+      
+      setTimeout(() => {
+        btnA.style.opacity = "1"; 
+        btnB.style.opacity = "1";
+        typeWriter("Genuine", document.getElementById('head-a'), 50, () => {
+            typeWriter("Not Genuine", document.getElementById('head-b'), 50);
+        });
+      }, 50);
+    }, 500);
+  };
+
+  btnA.onclick = () => handleChoice('genuine');
+  btnB.onclick = () => handleChoice('not_genuine');
+
+  function handleChoice(choice) {
+    let msg = "";
+    let isCorrect = false;
+
+    const warningHead = document.querySelector('#warning-overlay h1');
+    const successHead = document.querySelector('#success-overlay h1');
+
+    if (currentProfileNum === 1) {
+      warningHead.innerHTML = "⚠️ AI Detected";
+      successHead.innerHTML = "✅ Good Catch!";
+      isCorrect = (choice === 'not_genuine');
+      msg = "This profile was <b>generated using AI.</b><br><br><b>Anatomical Errors:</b> Missing finger.<br><b>Liquid-like Textures:</b> The hair is a mix of strands and blurry patches.<br><b>Nonsense Background Text:</b> Monitor shapes don't represent real digits.<br><br>The bio avoids specific details—a common trait of AI profiles.";
+    } 
+    else if (currentProfileNum === 2) {
+      warningHead.innerHTML = "⚠️ Unedited";
+      successHead.innerHTML = "✅ Good Catch!";
+      isCorrect = (choice === 'genuine');
+      if (isCorrect) {
+        msg = "This profile is <b>genuine.</b><br><br>The photo hasn’t been edited, which is common for real users who don’t curate their images professionally.<br><br>Real people often sound less polished, repeat themselves, or mention ordinary details.";
+      } else {
+        msg = "Actually, this profile is <b>genuine.</b><br><br>The photo hasn’t been edited, which is common for real users who don’t curate their images professionally.<br><br>Real people often sound less polished, repeat themselves, or mention ordinary details.";
+      }
+    }
+    else if (currentProfileNum === 3) {
+      warningHead.innerHTML = "⚠️ AI Detected";
+      successHead.innerHTML = "✅ Good Catch!";
+      isCorrect = (choice === 'not_genuine');
+      if (isCorrect) {
+          msg = "This profile belongs to a real person, but parts of it were <b>enhanced using AI.</b><br><br>Photos were retouched and the bio was polished to sound more confident and appealing, making the profile feel more trustworthy than it really is.";
+      } else {
+          msg = "Actually, this profile belongs to a real person, but parts of it were <b>enhanced using AI.</b><br><br>Photos were retouched and the bio was polished to sound more confident and appealing, making the profile feel more trustworthy than it really is.";
+      }
+    }
+    else if (currentProfileNum === 4) {
+      warningHead.innerHTML = "⚠️ AI Detected";
+      successHead.innerHTML = "✅ Good Catch!";
+      isCorrect = (choice === 'not_genuine');
+      msg = "This is a <b>bot account.</b><br><br>The profile image was AI-generated. Profiles like this are automated to attract attention and redirect users to external sites, including scam or phishing links.<br><br>The bio uses vague motivational buzzwords without personal details, which is a common tactic bots use to encourage quick interaction.";
+    }
+
+    const overlay = document.getElementById(isCorrect ? 'success-overlay' : 'warning-overlay');
+    const tag = document.getElementById(isCorrect ? 'success-tag' : 'warning-tag');
+    const btn = document.getElementById(isCorrect ? 'success-continue-btn' : 'continue-btn');
+
+    overlay.style.display = "flex";
+    setTimeout(() => overlay.style.opacity = "1", 10);
+
+    typeWriter(msg, tag, 20, () => {
+      btn.onclick = () => {
+        overlay.style.opacity = "0";
+        setTimeout(() => { 
+          overlay.style.display = "none"; 
+          transitionToNextProfile();
+        }, 500);
+      };
+    });
+  }
+
+  function transitionToNextProfile() {
+    const profileIDs = ["profile-one", "profile-two", "profile-three", "profile-four"];
+    const currentElem = document.getElementById(profileIDs[currentProfileNum - 1]);
+    const nextElem = document.getElementById(profileIDs[currentProfileNum]);
+
+    if (nextElem) {
+        currentElem.classList.remove('swipe-in');
+        currentElem.classList.add('swipe-out');
+        
+        nextElem.style.display = "block";
+        nextElem.classList.add('swipe-in');
+        
+        currentProfileNum++;
+
+        // Clear button text to re-trigger typing for next round
+        document.getElementById('head-a').innerHTML = "";
+        document.getElementById('head-b').innerHTML = "";
+
+        setTimeout(() => {
+            typeWriter("Genuine", document.getElementById('head-a'), 50, () => {
+                typeWriter("Not Genuine", document.getElementById('head-b'), 50);
+            });
+        }, 800);
+    } else {
+        window.location.href = "dc2pg8.html";
+    }
+  }
+
+  function typeWriter(text, element, speed, callback) {
+    element.innerHTML = text;
+    const nodes = [];
+    function getTextNodes(node) {
+        if (node.nodeType === 3) nodes.push(node);
+        else for (let child of node.childNodes) getTextNodes(child);
+    }
+    getTextNodes(element);
+    const originalTexts = nodes.map(n => n.textContent);
+    nodes.forEach(n => n.textContent = "");
+    let nodeIdx = 0, charIdx = 0;
+    function type() {
+        if (nodeIdx < nodes.length) {
+            if (charIdx < originalTexts[nodeIdx].length) {
+                nodes[nodeIdx].textContent += originalTexts[nodeIdx][charIdx];
+                charIdx++; setTimeout(type, speed);
+            } else { nodeIdx++; charIdx = 0; type(); }
+        } else if (callback) callback();
+    }
+    type();
+  }
+</script>
+</body>
+</html>

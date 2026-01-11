@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://use.typekit.net/cjg3huz.css">
+  <title>Just Another Day Online</title>
+  <style>
+    /* ------------------- Reset & Body ------------------- */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+
+    body {
+      background: url("BG1.1.png") center / cover no-repeat;
+      width: 100vw; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      background-color: #111;
+    }
+
+    /* ------------------- Game Container ------------------- */
+    #game-container {
+      width: 960px; height: 540px;
+      position: relative;
+      background: black; 
+      overflow: hidden;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    /* ------------------- Snooze Overlay ------------------- */
+    #snooze-overlay {
+      position: absolute; inset: 0;
+      background: black;
+      z-index: 100;
+      display: flex; justify-content: center; align-items: center;
+      opacity: 1;
+      transition: opacity 1.5s ease-in-out;
+    }
+
+    .snooze-text { font-size: 60px; color: white; font-family: 'Georgia', serif; }
+    .snooze-text span { display: inline-block; opacity: 0; animation: snooze-float 2s infinite; }
+    .snooze-text span:nth-child(2) { animation-delay: 0.5s; font-size: 45px; }
+    .snooze-text span:nth-child(3) { animation-delay: 1s; font-size: 30px; }
+
+    @keyframes snooze-float {
+      0% { transform: translate(0, 0); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translate(20px, -40px); opacity: 0; }
+    }
+
+    /* ------------------- Dialogue Textbox (you.png) ------------------- */
+    #dialogue-container {
+      position: absolute; 
+      bottom: 20px; 
+      left: 50%; 
+      transform: translateX(-50%);
+      width: 800px; 
+      height: 130px; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center;
+      opacity: 0; 
+      transition: opacity 1.5s ease-in-out; 
+      z-index: 10; 
+      padding: 0 60px;    
+    }
+
+    #textbox-image { 
+      position: absolute; 
+      inset: 0; 
+      width: 100%; 
+      height: 100%; 
+      z-index: -1; 
+      object-fit: fill; 
+    }
+
+    #dialogue-text { 
+      font-family: "cc-pixel-arcade-display", sans-serif;
+      font-weight: 100;
+      font-style: normal;
+      color: white; 
+      font-size: 15px; 
+      line-height: 1.4; 
+      text-align: center; 
+      margin-top: 25px; 
+    }
+
+    #next-btn { 
+      position: absolute; 
+      bottom: 15px; 
+      right: 20px; 
+      width: 80px; 
+      height: auto; 
+      cursor: pointer; 
+      display: none; 
+      z-index: 25; 
+      transition: transform 0.2s;
+    }
+    #next-btn:hover { transform: scale(1.1); }
+
+    /* ------------------- Table Phone & Glow Effect ------------------- */
+    #table-phone {
+      position: absolute; 
+      bottom: 31%; 
+      right: 6.5%; 
+      width: 40px; 
+      height: auto;
+      z-index: 4; 
+      opacity: 0; 
+      transition: opacity 1s ease-in-out;
+    }
+
+    @keyframes phone-glow {
+      0% { filter: drop-shadow(0 0 2px #fff); transform: scale(1); }
+      50% { filter: drop-shadow(0 0 15px #0ff); transform: scale(1.1); }
+      100% { filter: drop-shadow(0 0 2px #fff); transform: scale(1); }
+    }
+
+    .glowing {
+      animation: phone-glow 2s infinite ease-in-out;
+      cursor: pointer !important;
+      pointer-events: auto !important;
+    }
+
+    /* ------------------- In-Hand Phone (phone.png) ------------------- */
+#phone-ui-wrapper {
+  position: absolute;
+  right: -20px;       
+  top: 40%;           
+  transform: translateY(-50%) translateX(120%); /* Off-screen */
+  height: 65%;         
+  width: auto;
+  z-index: 50; 
+  transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#phone-ui-wrapper.visible {
+  transform: translateY(-50%) translateX(0);
+}
+
+#phone-ui {
+  height: 100%; 
+  width: auto;
+  filter: drop-shadow(-5px 5px 10px rgba(0,0,0,0.5)) 
+          drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+}
+
+/* ------------------- Marketplace App Icon ------------------- */
+#market-app {
+  position: absolute;
+  
+  top: 16%; 
+  left: 46.5%;
+  transform: translateX(-50%);
+  
+  width: 30px; 
+  cursor: pointer;
+  z-index: 51;
+  transition: transform 0.2s, filter 0.3s;
+}
+
+#market-app:hover {
+  transform: translateX(-50%) scale(1.1);
+  filter: brightness(1.2);
+}
+#click-hand {
+        position: absolute;
+        top: 22%; 
+        right: 157px; 
+        width: 55px;
+        z-index: 55;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s;
+        animation: hand-bounce 1s infinite ease-in-out;
+    }
+
+    @keyframes hand-bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-12px); }
+    }
+
+/* ------------------- Loading screen ------------------- */
+#loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95); 
+  display: none; 
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  color: white;
+  padding: 40px;
+
+  opacity: 0;
+  transition: opacity 1.5s ease-in-out;
+}
+
+.clock-icon {
+      font-size: 150px; 
+      margin-bottom: 40px;
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+#narration-text {
+      font-size: 20px;
+      line-height: 1.6;
+      text-align: center;
+      max-width: 600px;
+      margin-top: 30px;
+      font-style: italic;
+      color: #ddd;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 1; }
+    }
+
+  </style>
+</head>
+<body>
+
+<div id="game-container">
+  <div id="snooze-overlay">
+    <div class="snooze-text"><span>Z</span><span>z</span><span>z</span></div>
+  </div>
+
+  <img src="TablePhone.png" id="table-phone" alt="Phone on table">
+
+  <div id="dialogue-container">
+    <img src="you.png" id="textbox-image" alt="Textbox">
+    <p id="dialogue-text"></p>
+    <img src="next.png" id="next-btn" alt="Next">
+  </div>
+  <div id="phone-ui-wrapper">
+  <img src="phone.png" id="phone-ui" alt="Phone UI">
+  <img src="market.png" id="market-app" alt="Marketplace App">
+  <img src="clicked.png" id="click-hand">
+  </div>
+  <div id="loading-overlay">
+  <div class="clock-icon">🕒</div>
+  <p id="narration-text"></p>
+  </div>
+</div>
+
+<script>
+  let dialogueStage = 1;
+  const snooze = document.getElementById('snooze-overlay');
+  const container = document.getElementById('game-container');
+  const dialogueContainer = document.getElementById('dialogue-container');
+  const dialogueText = document.getElementById('dialogue-text');
+  const tablePhone = document.getElementById('table-phone');
+  const nextBtn = document.getElementById('next-btn');
+
+  window.onload = () => {
+    setTimeout(() => {
+      container.style.background = "url('bedroom.png') center / cover no-repeat";
+      tablePhone.style.opacity = "1";
+      snooze.style.opacity = "0";
+
+      setTimeout(() => { 
+        snooze.style.display = "none"; 
+      }, 1500); 
+
+      setTimeout(() => {
+        dialogueContainer.style.opacity = "1";
+        setTimeout(() => {
+          typeWriter("Already morning. I should get up.", dialogueText, 50);
+        }, 1000);
+      }, 3000); 
+    }, 3000); 
+  };
+
+  function typeWriter(text, element, speed) {
+    let i = 0;
+    element.innerHTML = ""; 
+    function type() {
+      if (i < text.length) {
+        element.innerHTML += text.charAt(i);
+        i++;
+        setTimeout(type, speed);
+      } else {
+        if (dialogueStage === 1) {
+          nextBtn.style.display = "block";
+        } else {
+          // Trigger the phone glow
+          tablePhone.classList.add('glowing');
+          tablePhone.style.pointerEvents = "auto";
+          tablePhone.style.zIndex = "999"; 
+        }
+      }
+    }
+    type();
+  }
+
+  // Next Button Event
+  nextBtn.addEventListener('click', () => {
+    nextBtn.style.display = "none"; 
+    if (dialogueStage === 1) {
+      dialogueStage = 2;
+      typeWriter("My phone’s right there, let me grab it.", dialogueText, 50);
+    }
+  });
+  
+  // Table Phone Event
+  tablePhone.addEventListener('click', function() {
+    if (this.classList.contains('glowing')) {
+      this.classList.remove('glowing');
+      this.style.opacity = "0";
+      this.style.pointerEvents = "none";
+
+      const phoneWrapper = document.getElementById('phone-ui-wrapper');
+      phoneWrapper.classList.add('visible');
+      document.getElementById('click-hand').style.opacity = "1";
+
+      dialogueContainer.style.opacity = "1"; 
+      const ticketMessage = "Wait—today’s the ticket drop. They’re probably sold out. Let me check MarketPlace to see if anyone's selling.";
+      
+      dialogueStage = 3; 
+      typeWriter(ticketMessage, dialogueText, 40);
+    }
+  });
+
+  const marketApp = document.getElementById('market-app');
+  marketApp.addEventListener('click', () => {
+    const loadingScreen = document.getElementById('loading-overlay');
+    const narrElement = document.getElementById('narration-text');
+    
+    loadingScreen.style.display = 'flex';
+    setTimeout(() => { loadingScreen.style.opacity = '1'; }, 10);
+
+    dialogueContainer.style.opacity = '0';
+    document.getElementById('phone-ui-wrapper').style.opacity = '0';
+
+    const narration = "You scroll through the listings. After a few swipes, one post catches your eye. You tap on the seller’s profile and open the chat.";
+    
+    setTimeout(() => {
+      typeWriter(narration, narrElement, 50);
+    }, 1500);
+
+    setTimeout(() => {
+      loadingScreen.style.opacity = '0';
+      setTimeout(() => {
+        window.location.href = "dc2pg3.html";
+      }, 1500);
+    }, 11000); 
+  });
+</script>
+
+</body>
+</html>

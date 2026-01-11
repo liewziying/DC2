@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Just Another Day Online - Afternoon</title>
+  <link rel="stylesheet" href="https://use.typekit.net/cjg3huz.css">
+  <style>
+     /* ------------------- Reset & Body ------------------- */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+    
+
+    body { 
+      background: url('BG1.1.png') center / cover no-repeat; 
+      width: 100vw; height: 100vh; 
+      display: flex; justify-content: center; align-items: center; 
+      overflow: hidden; 
+    }
+
+    /* ------------------- Game Container ------------------- */
+    #game-container {
+      width: 960px; height: 540px;
+      position: relative;
+      background: url('livingroom.png') center / cover no-repeat; 
+      border-radius: 8px;
+      transition: background 1.5s ease-in-out;
+    }
+
+    /* ------------------- Narration Overlay ------------------- */
+    #narration-overlay {
+      position: absolute; inset: 0;
+      background: rgba(0, 0, 0, 0.95);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 100; opacity: 1; transition: opacity 1.5s ease-in-out;
+    }
+
+        #narration-text {
+    font-size: 20px;
+    line-height: 1.8; /* Increased for readability of long narration */
+    text-align: center;
+    max-width: 700px;
+    font-style: italic;
+    color: #ddd;
+    }
+
+    .clock-icon { font-size: 150px; margin-bottom: 40px; animation: pulse 2s infinite ease-in-out; }
+    #narration-text { font-size: 20px; line-height: 1.6; text-align: center; max-width: 600px; font-style: italic; color: #ddd; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } }
+
+    /* ------------------- Scene Content ------------------- */
+    #scene-content { opacity: 0; transition: opacity 1.5s ease-in-out; width: 100%; height: 100%; position: relative; }
+
+    #phone-ui { position: absolute; right: -20px; top: 40%; transform: translateY(-50%); height: 65%; width: auto; z-index: 50; filter: drop-shadow(-5px 5px 10px rgba(0,0,0,0.5)); }
+
+    #dialogue-container {
+      position: absolute; 
+      bottom: 20px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 130px; 
+      display: flex; justify-content: center; align-items: center;
+      z-index: 60; padding: 0 60px;    
+    }
+    #textbox-image { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; object-fit: fill; }
+    
+    #dialogue-text { 
+      font-family: "cc-pixel-arcade-display", sans-serif;
+      font-weight: 100;
+      font-style: normal;
+      color: white; 
+      font-size: 15px; 
+      line-height: 1.4; 
+      text-align: center; 
+      margin-top: 25px; 
+    }
+
+    #next-btn { 
+      position: absolute; bottom: 15px; right: 20px; 
+      width: 80px; height: auto; cursor: pointer; 
+      display: none; opacity: 0; z-index: 70; 
+      transition: transform 0.2s, opacity 0.5s;
+    }
+    #next-btn:hover { transform: scale(1.1); }
+
+    /* ------------------- Phone Icons ------------------- */
+    #insta-icon {
+        position: absolute;
+        top: 18%; 
+        right: 205px; 
+        width: 30px; 
+        z-index: 51;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out, transform 0.2s;
+    }
+    #insta-icon:hover { transform: scale(1.1); }
+
+    #click-hand {
+        position: absolute;
+        top: 22%; 
+        right: 190px; 
+        width: 55px;
+        z-index: 55;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s;
+        animation: hand-bounce 1s infinite ease-in-out;
+    }
+
+    @keyframes hand-bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-12px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="game-container">
+  <div id="narration-overlay">
+    <div class="clock-icon">🕒</div>
+    <p id="narration-text"></p>
+  </div>
+
+  <div id="scene-content">
+      <img src="phone.png" id="phone-ui">
+      <img src="insta.png" id="insta-icon">
+      <img src="clicked.png" id="click-hand">
+
+      <div id="dialogue-container">
+          <img src="you.png" id="textbox-image">
+          <p id="dialogue-text"></p>
+          <img src="next.png" id="next-btn">
+      </div>
+  </div>
+</div>
+
+<script>
+  const container = document.getElementById('game-container');
+  const overlay = document.getElementById('narration-overlay');
+  const nText = document.getElementById('narration-text');
+  const scene = document.getElementById('scene-content');
+  const dText = document.getElementById('dialogue-text');
+  const nextBtn = document.getElementById('next-btn');
+  const instaIcon = document.getElementById('insta-icon');
+  const hand = document.getElementById('click-hand');
+
+  window.onload = () => {
+    typeWriter("A few hours later.<br>It’s afternoon, and you’re back on your phone.", nText, 50, () => {
+      setTimeout(() => {
+        overlay.style.opacity = "0";
+        container.style.backgroundImage = "url('livingroom.png')";
+        scene.style.opacity = "1";
+
+        setTimeout(() => {
+          overlay.style.display = "none";
+          // Trigger the sequence
+          triggerDialogueSequence();
+        }, 1500);
+      }, 2000);
+    });
+  };
+
+  function triggerDialogueSequence() {
+    typeWriter("Wow that could've gone very differently... Lucky me for pausing and questioning.", dText, 40, () => {
+        showNextButton(() => {
+            dText.innerHTML = "";
+            typeWriter("Time to scroll InstaConnect...", dText, 40, () => {
+                // No more next button, show the icon
+                setTimeout(showAppIcon, 500);
+            });
+        });
+    });
+  }
+
+  function showAppIcon() {
+    instaIcon.style.opacity = "1";
+    hand.style.opacity = "1";
+
+    instaIcon.onclick = () => {
+        // 1. Hide the hand and icon immediately
+        hand.style.opacity = "0";
+        instaIcon.style.opacity = "0";
+        
+        // 2. Bring back the Narration Overlay for the transition
+        overlay.style.display = "flex";
+        setTimeout(() => { overlay.style.opacity = "1"; }, 10);
+
+        // 3. New Narration Text
+        const scrollStory = "You scroll through your social media feed, half-paying attention.<br>"+
+                            "A post grabs your attention, it has thousands of likes & shares.<br>" +
+                            "The comments are intense.";
+
+        // Clear previous narration text
+        nText.innerHTML = "";
+
+        // 4. Start the new typewriter sequence
+        setTimeout(() => {
+            typeWriter(scrollStory, nText, 45, () => {
+                // Wait for the user to read, then proceed
+                setTimeout(() => {
+
+                    window.location.href = "dc2pg5.html"; 
+                }, 3000);
+            });
+        }, 1000);
+    };
+}
+
+  function showNextButton(callback) {
+    nextBtn.style.display = "block";
+    setTimeout(() => { nextBtn.style.opacity = "1"; }, 10);
+    nextBtn.onclick = () => {
+      nextBtn.style.opacity = "0";
+      setTimeout(() => { nextBtn.style.display = "none"; callback(); }, 500);
+    };
+  }
+
+  function typeWriter(text, element, speed, callback) {
+    let i = 0;
+    element.innerHTML = ""; 
+    function type() {
+      if (i < text.length) {
+        if (text.substring(i, i + 4) === "<br>") {
+          element.innerHTML += "<br>"; i += 4;
+        } else {
+          element.innerHTML += text.charAt(i); i++;
+        }
+        setTimeout(type, speed);
+      } else if (callback) callback();
+    }
+    type();
+  }
+</script>
+</body>
+</html>

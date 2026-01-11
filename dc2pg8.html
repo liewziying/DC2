@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>InstaConnect - Reflection & Rules</title>
+  <link rel="stylesheet" href="https://use.typekit.net/cjg3huz.css"> 
+  <style> 
+    /* ------------------- Reset & Base ------------------- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body { 
+      font-family: system-ui, sans-serif; 
+      background: url("BG1.1.png") center / cover no-repeat; 
+      width: 100vw; height: 100vh; 
+      display: flex; justify-content: center; align-items: center; 
+      overflow: hidden; 
+    }
+
+    #game-container {
+      width: 960px; height: 540px;
+      position: relative;
+      background: url("BG1.png") center / cover no-repeat;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    /* ------------------- Narration ------------------- */
+    #narration-layer {
+      position: absolute; inset: 0;
+      background: black;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 100; transition: opacity 0.8s ease;
+    }
+
+    #narration-text { 
+      font-family: "cc-pixel-arcade-joystick", monospace;
+      color: white; font-size: 20px; line-height: 1.8; text-align: center; max-width: 700px;
+    }
+
+    #next-btn { 
+      margin-top: 40px; width: 120px; cursor: pointer; 
+      display: none; opacity: 0; transition: opacity 0.5s, transform 0.2s; 
+    }
+    #next-btn:hover { transform: scale(1.15); }
+
+    /* ------------------- Rules Card (Colors Fixed Here) ------------------- */
+    #rules-card-container {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 700px; height: 420px; background-color: rgba(0,0,0,0.92);
+      border: 2px solid #0ff; border-radius: 20px; box-shadow: 0 0 20px #0ff;
+      z-index: 50; display: none; opacity: 0; transition: opacity 0.8s ease;
+      align-items: center; justify-content: center;
+    }
+
+    .card-page {
+      position: absolute; inset: 0; padding: 40px;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      text-align: center; opacity: 0; visibility: hidden; transition: opacity 0.4s;
+    }
+    .card-page.active { opacity: 1; visibility: visible; }
+
+    /* TYPOGRAPHY SETTINGS */
+    .card-page p { 
+      font-family: "cc-pixel-arcade-display", sans-serif;
+      font-size: 16px; line-height: 1.8; color: #fff !important; 
+      margin-bottom: 20px; 
+    }
+
+    .card-page strong { 
+      font-family: "cc-pixel-arcade-cartridge", sans-serif; 
+      font-size: 24px; color: #ffda44 !important; 
+      display: block; margin-bottom: 15px; letter-spacing: 2px;
+    }
+
+    h2 { 
+      font-family: "cc-pixel-arcade-cartridge", sans-serif;
+      font-size: 20px; color: #ffda44 !important; 
+      letter-spacing: 2px; margin-bottom: 5px; margin-top: 15px; 
+    }
+
+    #begin-challenge-btn {
+      font-family: "cc-pixel-arcade-cartridge", sans-serif;
+      padding: 12px 30px; font-size: 18px; border: none; border-radius: 8px;
+      background-color: #0ff; color: #000; cursor: pointer;
+      box-shadow: 0 0 15px #0ff; transition: transform 0.2s; margin-top: 10px;
+    }
+
+    /* ------------------- Arrows ------------------- */
+    .arrow-btn {
+      position: absolute; top: 50%; font-size: 36px; color: #0ff;
+      cursor: pointer; z-index: 60; transition: transform 0.2s;
+    }
+
+    .arrow-btn:hover { color: #fff; transform: translateY(-50%) scale(1.2); }
+    .arrow-btn.left { left: 25px; transform: translateY(-50%) rotate(180deg); }
+    .arrow-btn.right { right: 25px; transform: translateY(-50%); }
+
+    /* ------------------- Gameplay ------------------- */
+    .tactic-card {
+        width: 140px; height: auto; opacity: 0; cursor: pointer;
+        transform: translateY(600px); transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s;
+    }
+    .tactic-card.swipe-up { opacity: 1; transform: translateY(0); }
+    .tactic-card.selected { filter: drop-shadow(0 0 10px #0ff); transform: translateY(-20px) !important; z-index: 110; }
+
+    #app-container { position: absolute; top: 65px; width: 100%; display: flex; justify-content: center; z-index: 10; }
+    #main-app { width: 400px; height: auto; opacity: 0; transform: translateY(-500px); transition: 1s ease-out; }
+    #main-app.drop-down { opacity: 1; transform: translateY(0); }
+
+    #tactics-container { position: absolute; bottom: 50px; width: 100%; display: flex; gap: 15px; padding: 0 80px; z-index: 40; align-items: center; }
+    
+    #submit-btn {
+        width: 120px; margin-left: auto; cursor: pointer; opacity: 0; transform: translateY(600px);
+        transition: 0.5s; filter: grayscale(100%); pointer-events: none;
+    }
+    #submit-btn.swipe-up { opacity: 0.5; transform: translateY(0); }
+    #submit-btn.active { opacity: 1; filter: grayscale(0%); pointer-events: auto; }
+
+    .overlay {
+        position: absolute; inset: 0; background: rgba(0,0,0,0.95);
+        display: none; flex-direction: column; justify-content: center; align-items: center;
+        z-index: 200; opacity: 0; transition: 0.5s; color: white; text-align: center; padding: 40px;
+    }
+    .overlay-btn { margin-top: 20px; padding: 10px 30px; background: #ff9f1c; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div id="game-container">
+  <div id="narration-layer">
+    <p id="narration-text"></p>
+    <img src="next.png" id="next-btn" alt="Next">
+  </div>
+
+  <div id="rules-card-container">
+    <div id="page-1" class="card-page active">
+        <p><strong>Recap Challenge</strong>You’ll see a list of online tactics<br> used throughout the day,<br> and the apps where they appeared.</p>
+        <div class="arrow-btn right" onclick="showPage(2)">&#10132;</div>
+    </div>
+    <div id="page-2" class="card-page">
+        <h2>YOUR TASK:</h2>
+        <p>Pick the tactics used for each app where<br> you noticed them and click submit.<br><br>Ps: Tactics may apply to more than one app.</p>
+        <div class="arrow-btn left" onclick="showPage(1)">&#10132;</div>
+        <button id="begin-challenge-btn">BEGIN CHALLENGE</button>
+    </div>
+  </div>
+
+  <div id="app-container"><img src="Mrecap.png" id="main-app" alt="App Recap"></div>
+
+  <div id="tactics-container">
+    <img src="1card.png" class="tactic-card" id="t-card-1">
+    <img src="2card.png" class="tactic-card" id="t-card-2">
+    <img src="3card.png" class="tactic-card" id="t-card-3">
+    <img src="4card.png" class="tactic-card" id="t-card-4">
+    <img src="submit.png" id="submit-btn" alt="Submit">
+  </div>
+
+  <div id="success-overlay" class="overlay">
+    <p id="success-tag"></p>
+    <button id="success-continue-btn" class="overlay-btn">CONTINUE</button>
+  </div>
+  <div id="warning-overlay" class="overlay">
+    <p id="warning-tag"></p>
+    <button id="warning-continue-btn" class="overlay-btn">TRY AGAIN</button>
+  </div>
+  <div id="final-recap-overlay" style="display:none; position:absolute; inset:0; background:black; z-index:300; flex-direction:column; justify-content:center; align-items:center; opacity:0; transition: 1.5s ease; color:white;">
+    <p id="final-recap-text" style="font-family: 'cc-pixel-arcade-joystick', monospace; font-size: 20px; text-align:center; max-width: 700px; line-height: 1.8; "></p>
+  </div>
+</div>
+
+<script>
+  // --- 1. AUDIO INITIALIZATION ---
+  const bgMusic = new Audio('backtrack.mp3');
+  bgMusic.loop = true;
+  bgMusic.volume = 0.4; // Set to 40% volume
+
+  const clickSound = new Audio('click.mp3');
+
+  // Helper function to play click sound instantly
+  function playClick() {
+    clickSound.currentTime = 0; 
+    clickSound.play().catch(e => console.log("Click sound blocked"));
+  }
+
+  // Helper to unlock/play BG music on first interaction
+  function startMusic() {
+    if (bgMusic.paused) {
+      bgMusic.play().catch(e => console.log("Music waiting for interaction"));
+    }
+  }
+
+  const nText = document.getElementById('narration-text');
+  const nextBtn = document.getElementById('next-btn');
+  const narrationLayer = document.getElementById('narration-layer');
+  const rulesContainer = document.getElementById('rules-card-container');
+  const submitBtn = document.getElementById('submit-btn');
+  const mainApp = document.getElementById('main-app');
+
+  let currentApp = 1;
+
+  function typeWriter(text, element, speed, callback) {
+    const segment = document.createElement('span');
+    element.appendChild(segment);
+    let i = 0;
+    function type() {
+      if (i < text.length) {
+        if (text.charAt(i) === '<') {
+          let tagEnd = text.indexOf('>', i);
+          segment.innerHTML += text.substring(i, tagEnd + 1);
+          i = tagEnd + 1;
+        } else {
+          segment.innerHTML += text.charAt(i);
+          i++;
+        }
+        setTimeout(type, speed);
+      } else if (callback) callback();
+    }
+    type();
+  }
+
+  window.onload = () => {
+    // Note: Music will likely start after the first button click due to browser rules
+    typeWriter("Congrats! You've made it through the day.", nText, 40, () => {
+      setTimeout(() => {
+        typeWriter("<br><br>However, it doesn't end here.<br><br>Before you go, there's one last challenge.<br> A chance to recall what<br> you encountered online today.", nText, 40, () => {
+          nextBtn.style.display = "block";
+          setTimeout(() => { nextBtn.style.opacity = "1"; }, 10);
+        });
+      }, 1500);
+    });
+  };
+
+  nextBtn.onclick = () => {
+    playClick();
+    startMusic(); // Start music on the first button interaction
+    narrationLayer.style.opacity = "0";
+    setTimeout(() => {
+      narrationLayer.style.display = "none";
+      rulesContainer.style.display = "flex";
+      setTimeout(() => rulesContainer.style.opacity = "1", 10);
+    }, 800);
+  };
+
+  function showPage(pageNum) {
+    playClick(); // Click sound for arrow navigation
+    document.querySelectorAll('.card-page').forEach(p => p.classList.remove('active'));
+    document.getElementById(`page-${pageNum}`).classList.add('active');
+  }
+
+  document.getElementById('begin-challenge-btn').onclick = () => {
+    playClick();
+    rulesContainer.style.opacity = '0';
+    setTimeout(() => {
+        rulesContainer.style.display = 'none';
+        setTimeout(() => {
+            document.querySelectorAll('.tactic-card').forEach((card, i) => {
+                setTimeout(() => card.classList.add('swipe-up'), i * 200);
+            });
+            setTimeout(() => submitBtn.classList.add('swipe-up'), 1000);
+            setTimeout(() => mainApp.classList.add('drop-down'), 2000);
+        }, 1000);
+    }, 800);
+  };
+
+  document.querySelectorAll('.tactic-card').forEach(card => {
+    card.onclick = function() {
+        playClick(); // Click sound for selecting a card
+        this.classList.toggle('selected');
+        const count = document.querySelectorAll('.tactic-card.selected').length;
+        if (count > 0) submitBtn.classList.add('active');
+        else submitBtn.classList.remove('active');
+    };
+  });
+
+  submitBtn.onclick = () => {
+    playClick();
+    const selectedIDs = Array.from(document.querySelectorAll('.tactic-card.selected')).map(c => c.id);
+    if (selectedIDs.length === 0) return;
+
+    let isCorrect = false;
+    if (currentApp === 1) isCorrect = (selectedIDs.length === 4);
+    else if (currentApp === 2) isCorrect = (selectedIDs.includes('t-card-3') && selectedIDs.includes('t-card-4') && selectedIDs.length === 2);
+    else if (currentApp === 3) isCorrect = (selectedIDs.includes('t-card-1') && selectedIDs.includes('t-card-3') && selectedIDs.includes('t-card-4') && selectedIDs.length === 3);
+    
+    showFeedback(isCorrect);
+  };
+
+  function showFeedback(isCorrect) {
+    const overlay = document.getElementById(isCorrect ? 'success-overlay' : 'warning-overlay');
+    const tag = document.getElementById(isCorrect ? 'success-tag' : 'warning-tag');
+    const btn = document.getElementById(isCorrect ? 'success-continue-btn' : 'warning-continue-btn');
+
+    overlay.style.display = "flex";
+    setTimeout(() => overlay.style.opacity = "1", 10);
+    tag.innerHTML = "";
+    let msg = isCorrect ? "<b>Correct!</b> You identified the tactics used on this platform." : "<b>Not quite.</b> Think back on the details and try again.";
+
+    typeWriter(msg, tag, 20, () => {
+        btn.onclick = () => {
+            playClick(); // Click sound for overlay buttons
+            overlay.style.opacity = "0";
+            setTimeout(() => { 
+                overlay.style.display = "none"; 
+                if (isCorrect) {
+                    if (currentApp === 1) prepareNextApp("Srecap.png", 2);
+                    else if (currentApp === 2) prepareNextApp("Drecap.png", 3);
+                    else triggerFinalSequence();
+                }
+            }, 500);
+        };
+    });
+  }
+
+  function prepareNextApp(nextImg, nextLevel) {
+    currentApp = nextLevel;
+    document.querySelectorAll('.tactic-card').forEach(c => c.classList.remove('selected'));
+    submitBtn.classList.remove('active');
+    mainApp.style.transform = "translateY(-600px)";
+    mainApp.style.opacity = "0";
+    setTimeout(() => {
+        mainApp.src = nextImg;
+        setTimeout(() => { mainApp.style.transform = "translateY(0)"; mainApp.style.opacity = "1"; }, 100);
+    }, 800);
+  }
+
+  function triggerFinalSequence() {
+    const finalOverlay = document.getElementById('final-recap-overlay');
+    const finalText = document.getElementById('final-recap-text');
+    
+    finalOverlay.style.display = "flex";
+    
+    setTimeout(() => {
+        finalOverlay.style.opacity = "1";
+        
+        setTimeout(() => {
+            typeWriter("Recap challenge complete.", finalText, 50, () => {
+                setTimeout(() => {
+                    finalText.style.transition = "opacity 1s";
+                    finalText.style.opacity = "0";
+                    
+                    setTimeout(() => {
+                        finalText.innerHTML = ""; 
+                        finalText.style.opacity = "1";
+                        typeWriter("Next time you’re online, pause.<br>Check sources.<br>Ask for proof.<br>Trust actions over words.", finalText, 80, () => {
+                            
+                            setTimeout(() => {
+                                finalText.style.opacity = "0";
+                                
+                                setTimeout(() => {
+                                    finalText.innerHTML = "";
+                                    finalText.style.opacity = "1";
+                                    typeWriter("Thank you for playing.", finalText, 100, () => {
+                                       
+                                      setTimeout(() => { 
+                                            window.location.href = "index.html"; 
+                                        }, 3000);
+                                    });
+                                }, 1500); 
+                            }, 4000); 
+                        });
+                    }, 2000);
+                }, 2000);
+            });
+        }, 2000);
+    }, 100);
+  }
+</script>
+<audio id="bg-music" src="backtrack.mp3" loop></audio>
+<audio id="click-sound" src="click.mp3" preload="auto"></audio>
+</body>
+</html>

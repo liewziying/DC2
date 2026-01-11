@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>InstaConnect - Night Reflection</title>
+  <link rel="stylesheet" href="https://use.typekit.net/cjg3huz.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body { background: url('BG1.1.png') center / cover no-repeat; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+    #game-container { width: 960px; height: 540px; position: relative; background: url('bedroom.png') center / cover no-repeat; border-radius: 8px; overflow: hidden; }
+    #bedroom-dimmer { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.7); z-index: 1; }
+    
+    #narration-overlay {
+      position: absolute; inset: 0;
+      background: black;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 100; opacity: 1; transition: opacity 2s ease-in-out;
+    }
+
+    .clock-icon { font-size: 120px; margin-bottom: 33px; animation: pulse 2s infinite ease-in-out; }
+    #narration-text { font-size: 22px; line-height: 1.8; text-align: center; max-width: 750px; font-style: italic; color: #ffffff; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } }
+
+    #phone-ui { position: absolute; right: -20px; top: 40%; transform: translateY(-50%); height: 65%; width: auto; z-index: 50; opacity: 0; filter: drop-shadow(-5px 5px 10px rgba(0,0,0,0.5)); transition: opacity 1.5s ease-in-out; }
+    #dialogue-container { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 800px; height: 130px; display: flex; justify-content: center; align-items: center; z-index: 60; opacity: 0; transition: opacity 1.5s ease-in-out; }
+    #textbox-image { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; object-fit: fill; }
+    #dialogue-text { 
+      font-family: "cc-pixel-arcade-display", sans-serif;
+      font-weight: 100;
+      font-style: normal;
+      color: white; 
+      font-size: 15px; 
+      line-height: 1.4; 
+      text-align: center; 
+      margin-top: 25px; 
+    }
+    
+    #romance-app { position: absolute; top: 27%; right: 105px; width: 29px; z-index: 51; cursor: pointer; opacity: 0; transition: opacity 0.5s ease-in-out, transform 0.2s; }
+    #romance-app:hover { transform: scale(1.1); }
+    #click-hand { position: absolute; top: 30%; right: 90px; width: 55px; z-index: 55; opacity: 0; pointer-events: none; transition: opacity 0.5s; animation: hand-bounce 1s infinite ease-in-out; }
+    @keyframes hand-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+  </style>
+</head>
+<body>
+
+<div id="game-container">
+  <div id="bedroom-dimmer"></div>
+
+  <div id="narration-overlay">
+    <div class="clock-icon">🕒</div>
+    <p id="narration-text"></p>
+  </div>
+
+  <img src="phone.png" id="phone-ui">
+  <img src="romance.png" id="romance-app">
+  <img src="clicked.png" id="click-hand">
+
+  <div id="dialogue-container">
+    <img src="you.png" id="textbox-image">
+    <p id="dialogue-text"></p>
+  </div>
+</div>
+
+<script>
+  // Elements
+  const overlay = document.getElementById('narration-overlay');
+  const nText = document.getElementById('narration-text');
+  const phone = document.getElementById('phone-ui');
+  const dCont = document.getElementById('dialogue-container');
+  const dText = document.getElementById('dialogue-text');
+  const app = document.getElementById('romance-app');
+  const hand = document.getElementById('click-hand');
+
+  const fullNarration = "Evening comes faster than expected.<br>" +
+                        "Over dinner, your mum casually brings it up again —<br>" +
+                        "“You’re 25 already… maybe it’s time you start meeting someone?”<br><br>" +
+                        "Later that night, back in your room, your phone lights up the dark.";
+
+  window.onload = () => {
+    // Start with the narration typing
+    typeWriter(fullNarration, nText, 45, () => {
+      setTimeout(() => {
+        overlay.style.opacity = "0"; // Fade out black
+        
+        setTimeout(() => {
+          overlay.style.display = "none";
+
+          setTimeout(() => {
+            phone.style.opacity = "1";
+            dCont.style.opacity = "1";
+
+            // Type final thought
+            typeWriter("Hais...Time to see if I get any matches today...", dText, 50, () => {
+                // Show App and Hand
+                app.style.opacity = "1";
+                hand.style.opacity = "1";
+
+                app.onclick = () => {
+                    app.style.opacity = "0";
+                    hand.style.opacity = "0";
+                    dCont.style.opacity = "0";
+                    phone.style.opacity = "0";
+                    
+                    setTimeout(() => {
+                        window.location.href = "dc2pg7.html";
+                    }, 1000);
+                };
+            });
+          }, 1000); 
+
+        }, 2000); 
+      }, 3000);
+    });
+  };
+
+  function typeWriter(text, element, speed, callback) {
+    let i = 0;
+    element.innerHTML = ""; 
+    function type() {
+      if (i < text.length) {
+        if (text.substring(i, i + 4) === "<br>") {
+          element.innerHTML += "<br>";
+          i += 4;
+        } else {
+          element.innerHTML += text.charAt(i);
+          i++;
+        }
+        setTimeout(type, speed);
+      } else if (callback) callback();
+    }
+    type();
+  }
+</script>
+</body>
+</html>

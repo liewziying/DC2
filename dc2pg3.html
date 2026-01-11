@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Just Another Day Online</title>
+  <link rel="stylesheet" href="https://use.typekit.net/cjg3huz.css">
+  <style>
+    /* ------------------- Reset & Body ------------------- */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+    
+    body { 
+      background: url('BG1.1.png') center / cover no-repeat; 
+      width: 100vw; height: 100vh; 
+      display: flex; justify-content: center; align-items: center; 
+      overflow: hidden; 
+    }
+
+    /* ------------------- Game Container ------------------- */
+    #game-container {
+      width: 960px; height: 540px;
+      position: relative;
+      background: url('bedroom.png') center / cover no-repeat; 
+      border-radius: 8px;
+      opacity: 0; 
+      transition: opacity 1s ease-in-out;
+    }
+
+    /* ------------------- Dialogue Textbox ------------------- */
+    #dialogue-container {
+      position: absolute; 
+      bottom: 20px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 130px; 
+      display: flex; justify-content: center; align-items: center;
+      opacity: 0; transition: opacity 0.5s ease-in-out; 
+      z-index: 60; padding: 0 60px;    
+    }
+    #textbox-image { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; object-fit: fill; }
+    #dialogue-text { 
+          font-family: "cc-pixel-arcade-display", sans-serif;
+          font-weight: 100;
+          font-style: normal;
+          color: white; 
+          font-size: 15px; 
+          line-height: 1.4; 
+          text-align: center; 
+          margin-top: 25px; 
+        }
+    #next-btn { 
+      position: absolute; bottom: 15px; right: 20px; 
+      width: 80px; height: auto; cursor: pointer; 
+      display: none; opacity: 0; z-index: 70; 
+      transition: transform 0.2s, opacity 0.5s;
+    }
+    #next-btn:hover { transform: scale(1.1); }
+
+    /* ------------------- Phone & Chat ------------------- */
+    #phone-ui-wrapper {
+      position: absolute;
+      right: -20px; top: 40%; transform: translateY(-50%);
+      height: 65%; width: auto;
+      z-index: 50; display: flex; align-items: center; justify-content: center;
+    }
+    #phone-ui { height: 100%; width: auto; filter: drop-shadow(-5px 5px 10px rgba(0,0,0,0.5)); }
+
+    #click-hand {
+      position: absolute; top: 13%; left: 37%; width: 70px; 
+      z-index: 55; opacity: 0; pointer-events: none; 
+      transition: opacity 0.5s;
+      animation: hand-bounce 1s infinite ease-in-out;
+    }
+
+    #chat-wrapper {
+      position: absolute;
+      right: 350px; top: 40%; transform: translateY(-50%);
+      width: 450px; height: 500px;
+      z-index: 40; opacity: 0; transition: opacity 1s ease-in-out;
+    }
+    #chat-bg { width: 100%; height: 100%; object-fit: contain; }
+
+    .msg { position: absolute; z-index: 45; opacity: 0; transition: opacity 0.5s ease-in-out; }
+    #seller-reply { top: 40%; left: 2%; width: 55%; }
+    #mc-reply { top: 48%; right: 1.5%; width: 43%; }
+    #sec-reply { top: 54%; left: 2%; width: 70%; }
+    #mc-reply-2 { top: 62%; right: 1.5%; width: 32%; }
+    #third-reply { top: 68%; left: 2%; width: 44%; }
+
+    /* ------------------- Choice Interface ------------------- */
+    #choice-wrap {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 130px; 
+      display: none; opacity: 0; z-index: 20;
+      transition: opacity 0.5s ease-in-out;
+    }
+    #choice-bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; z-index: -1; }
+
+    .branch-btn {
+      position: absolute; top: 60%; transform: translateY(-50%);
+      width: 120px; cursor: pointer; opacity: 0; 
+      transition: transform 0.2s, opacity 0.5s; z-index: 25;
+    }
+    #btn-a { left: 5%; }
+    #btn-b { right: 35%; }
+    .branch-btn:hover { transform: translateY(-50%) scale(1.1); }
+
+    .text-container {
+    position: absolute;
+    top: 60%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: rgb(221, 255, 0);
+    /* Added these to allow wrapping */
+    width: 250px; 
+    white-space: normal; 
+    line-height: 1.2;
+    }
+
+    #text-container-a { left: 15%; }
+    #text-container-b { left: 60%; }
+
+    /* ------------------- Overlays ------------------- */
+    #fail-overlay {
+      position: absolute; inset: 0; background: rgba(0, 0, 0, 0.9);
+      display: none; justify-content: center; align-items: center;
+      z-index: 200; opacity: 0; transition: opacity 0.5s ease;
+    }
+    #fail-box {
+      width: 500px; background: #1a1a1a; border: 2px solid #ff4757;
+      padding: 40px; border-radius: 12px; text-align: center;
+      box-shadow: 0 0 30px rgba(255, 71, 87, 0.3);
+    }
+    #fail-head { color: #ff4757; font-size: 28px; margin-bottom: 15px; }
+    #fail-tag { color: #ffffff; font-size: 16px; line-height: 1.6; margin-bottom: 25px; }
+    #retry-btn {
+      background: #ff4757; color: white; border: none; padding: 12px 30px;
+      font-weight: bold; border-radius: 5px; cursor: pointer; transition: 0.2s;
+    }
+    #retry-btn:hover { background: #ff6b81; transform: scale(1.1); }
+
+    #finish-btn:hover {
+  transform: scale(1.1);
+  background: #27ae60;
+}
+
+  </style>
+</head>
+<body>
+
+<div id="game-container">
+  <div id="dialogue-container">
+    <img src="you.png" id="textbox-image" alt="Textbox">
+    <p id="dialogue-text"></p>
+    <img src="next.png" id="next-btn" alt="Next">
+  </div>
+
+  <div id="phone-ui-wrapper">
+    <img src="phone.png" id="phone-ui"> 
+    <img src="cclicked.png" id="click-hand">
+  </div>
+
+  <div id="chat-wrapper">
+    <img src="chatbg.png" id="chat-bg">
+    <img src="firstmsg.png" id="seller-reply" class="msg">
+    <img src="mcmsg.png" id="mc-reply" class="msg">
+    <img src="secmsg.png" id="sec-reply" class="msg">
+    <img src="2mcmsg.png" id="mc-reply-2" class="msg">
+    <img src="thirdmsg.png" id="third-reply" class="msg">
+  </div>
+
+  <div id="choice-wrap">
+    <img src="choose.png" id="choice-bg-img">
+    <img src="Abutton.png" id="btn-a" class="branch-btn">
+    <div id="text-container-a" class="text-container">
+      <h3 id="head-a" style="font-size: 18px; text-shadow: 2px 2px 4px #000;"></h3>
+      <p id="tag-a" style="font-size: 14px; opacity: 0.8; text-shadow: 1px 1px 3px #000;"></p>
+    </div>
+    <img src="Bbutton.png" id="btn-b" class="branch-btn">
+    <div id="text-container-b" class="text-container">
+      <h3 id="head-b" style="font-size: 18px; text-shadow: 2px 2px 4px #000;"></h3>
+      <p id="tag-b" style="font-size: 14px; opacity: 0.8; text-shadow: 1px 1px 3px #000;"></p>
+    </div>
+  </div>
+
+  <div id="fail-overlay">
+    <div id="fail-box">
+      <h1 id="fail-head"></h1>
+      <p id="fail-tag"></p>
+      <button id="retry-btn">TRY AGAIN</button>
+    </div>
+  </div>
+
+  <div id="success-overlay" style="display: none; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.9); z-index: 200; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.5s ease;">
+  <div id="success-box" style="width: 500px; background: #1a1a1a; border: 2px solid #2ecc71; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 0 30px rgba(46, 204, 113, 0.3);">
+    <h1 id="success-head" style="color: #2ecc71; font-size: 28px; margin-bottom: 15px; font-weight: bold;"></h1>
+    <p id="success-tag" style="color: #ffffff; font-size: 16px; line-height: 1.6; margin-bottom: 25px;"></p>
+    <button id="finish-btn" style="background: #2ecc71; color: white; border: none; padding: 12px 30px; font-weight: bold; border-radius: 5px; cursor: pointer; transition: 0.2s;">CONTINUE</button>
+  </div>
+</div>
+</div>
+
+<script>
+  // Selectors
+  const ui = {
+    container: document.getElementById('game-container'),
+    dialogue: document.getElementById('dialogue-container'),
+    text: document.getElementById('dialogue-text'),
+    next: document.getElementById('next-btn'),
+    chat: document.getElementById('chat-wrapper'),
+    hand: document.getElementById('click-hand'),
+    choices: document.getElementById('choice-wrap'),
+    overlay: document.getElementById('fail-overlay'),
+    failHead: document.getElementById('fail-head'),
+    failTag: document.getElementById('fail-tag'),
+    successOverlay: document.getElementById('success-overlay'),
+    successHead: document.getElementById('success-head'),
+    successTag: document.getElementById('success-tag'),
+    finishBtn: document.getElementById('finish-btn')
+  };
+
+  const msgs = {
+    s1: document.getElementById('seller-reply'),
+    m1: document.getElementById('mc-reply'),
+    s2: document.getElementById('sec-reply'),
+    m2: document.getElementById('mc-reply-2'),
+    s3: document.getElementById('third-reply')
+  };
+
+  const btns = {
+    a: document.getElementById('btn-a'),
+    b: document.getElementById('btn-b'),
+    retry: document.getElementById('retry-btn')
+  };
+
+  window.onload = () => {
+    ui.container.style.opacity = "1";
+    setTimeout(() => {
+      ui.dialogue.style.opacity = "1";
+      typeWriter("This seller... 'FastestTickets67'. They have one last pair. I should message them quickly.", ui.text, 40, () => {
+        ui.chat.style.opacity = "1"; 
+        ui.hand.style.opacity = "1";
+        setTimeout(() => {
+          msgs.s1.style.opacity = "1";
+          setTimeout(() => {
+            typeWriter("Wait, he already replied? He says they are still available if I pay now! Let's see what the price is...", ui.text, 40, () => {
+              showNextButton(startChatSequence);
+            });
+          }, 500);
+        }, 1000);
+      });
+    }, 1000);
+  };
+
+  function typeWriter(text, element, speed, callback) {
+    let i = 0;
+    element.innerHTML = ""; 
+    function type() {
+      if (i < text.length) {
+        if (text.substring(i, i + 4) === "<br>") {
+          element.innerHTML += "<br>";
+          i += 4;
+        } else {
+          element.innerHTML += text.charAt(i);
+          i++;
+        }
+        setTimeout(type, speed);
+      } else if (callback) callback();
+    }
+    type();
+  }
+
+  function showNextButton(callback) {
+    ui.next.style.display = "block";
+    setTimeout(() => ui.next.style.opacity = "1", 10);
+    ui.next.onclick = () => {
+      ui.next.style.opacity = "0";
+      setTimeout(() => { ui.next.style.display = "none"; callback(); }, 500);
+    };
+  }
+
+  function startChatSequence() {
+    msgs.m1.style.opacity = "1";
+    setTimeout(() => {
+      msgs.s2.style.opacity = "1";
+      typeWriter("Hmm… he seem so friendly, but his replies are almost too fast and perfect… something feels off.", ui.text, 40, () => {
+        showNextButton(triggerChoiceBranch);
+      });
+    }, 1500);
+  }
+
+  function triggerChoiceBranch() {
+    ui.dialogue.style.opacity = "0";
+    // Clear text so it doesn't show up during the choice menu
+    ui.text.innerHTML = ""; 
+
+    setTimeout(() => {
+      ui.dialogue.style.display = "none";
+      ui.choices.style.display = "block";
+      setTimeout(() => { 
+        ui.choices.style.opacity = "1"; 
+        setTimeout(() => {
+          btns.a.style.opacity = "1";
+          btns.b.style.opacity = "1";
+          typeWriter("Proceed with payment", document.getElementById('head-a'), 30, () => {
+            typeWriter("I’ll just trust them.", document.getElementById('tag-a'), 20);
+          });
+          typeWriter("Ask for proof of ownership", document.getElementById('head-b'), 30, () => {
+            typeWriter("I should double-check.", document.getElementById('tag-b'), 20);
+          });
+        }, 1000);
+      }, 50);
+    }, 500);
+
+    btns.a.onclick = handleFailChoice;
+    btns.b.onclick = handleCorrectChoice;
+  }
+
+  function handleFailChoice() {
+    ui.overlay.style.display = "flex";
+    setTimeout(() => ui.overlay.style.opacity = "1", 10);
+    typeWriter("⚠️ You rushed the decision.", ui.failHead, 30, () => {
+      typeWriter("The seller disappears after payment. AI-generated replies can sound convincing — but speed and reassurance don’t equal trust.", ui.failTag, 20);
+    });
+  }
+
+  btns.retry.onclick = () => {
+    ui.overlay.style.opacity = "0";
+    setTimeout(() => { 
+      ui.overlay.style.display = "none";
+      ui.failHead.innerHTML = ""; ui.failTag.innerHTML = "";
+    }, 500);
+  };
+
+  function handleCorrectChoice() {
+    // FIX: Clear text immediately so the "Something feels off" line doesn't persist
+    ui.text.innerHTML = ""; 
+    ui.choices.style.opacity = "0";
+
+    setTimeout(() => {
+      ui.choices.style.display = "none";
+      ui.dialogue.style.display = "flex";
+      ui.dialogue.style.opacity = "1";
+      msgs.m2.style.opacity = "1";
+      setTimeout(() => {
+        msgs.s3.style.opacity = "1";
+        setTimeout(() => {
+          typeWriter("Still instant… no typing delay at all.", ui.text, 40, () => {
+            showNextButton(triggerSecondChoiceBranch);
+          });
+        }, 800);
+      }, 600);
+    }, 500);
+  }
+
+  function triggerSecondChoiceBranch() {
+    ui.dialogue.style.opacity = "0";
+    // FIX: Clear the "Still instant" line before showing the next choice menu
+    ui.text.innerHTML = ""; 
+
+    setTimeout(() => {
+      ui.dialogue.style.display = "none";
+      ui.choices.style.display = "block";
+      setTimeout(() => { 
+        ui.choices.style.opacity = "1"; 
+        document.getElementById('head-a').innerHTML = ""; document.getElementById('tag-a').innerHTML = "";
+        document.getElementById('head-b').innerHTML = ""; document.getElementById('tag-b').innerHTML = "";
+        
+        setTimeout(() => {
+          btns.a.style.opacity = "1"; btns.b.style.opacity = "1";
+          typeWriter("Accept a screenshot<br>of the ticket", document.getElementById('head-a'), 30);
+          typeWriter("Ask for screen recording<br>with today’s date", document.getElementById('head-b'), 30);
+          
+          btns.a.onclick = () => {
+            ui.overlay.style.display = "flex";
+            setTimeout(() => ui.overlay.style.opacity = "1", 10);
+            typeWriter("⚠️ Screenshots are easily faked.", ui.failHead, 30, () => {
+              typeWriter("AI tools can easily generate realistic images. The ticket turns out to be invalid.", ui.failTag, 20);
+            });
+          };
+
+          btns.b.onclick = () => {
+            ui.successOverlay.style.display = "flex";
+            setTimeout(() => ui.successOverlay.style.opacity = "1", 10);
+            typeWriter("✅ Good call.", ui.successHead, 30, () => {
+              typeWriter("You asked for verification that’s harder for AI to fake. The seller stops replying.<br><br>Lesson: AI can talk like a real person — but it can’t always prove ownership.", ui.successTag, 20);
+            });
+          };
+        }, 1000);
+      }, 50);
+    }, 500);
+  }
+
+  ui.finishBtn.onclick = () => {
+    window.location.href = "dc2pg4.html";
+  };
+</script>
+  
+</body>
+</html>
